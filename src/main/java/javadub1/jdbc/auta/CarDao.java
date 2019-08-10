@@ -121,7 +121,7 @@ public class CarDao {
     public List<Car> getCarByPrzebieg(Double przebieg) {
         List<Car> list = new ArrayList<>();
 
-        try (PreparedStatement statement = JdbcConnect.getConnection().prepareStatement(FIND_CAR_BY_NAZWA)) {
+        try (PreparedStatement statement = JdbcConnect.getConnection().prepareStatement(FIND_CAR_BY_PRZEBIEG)) {
             statement.setDouble(1, przebieg);
             ResultSet resultSet = statement.executeQuery();
 
