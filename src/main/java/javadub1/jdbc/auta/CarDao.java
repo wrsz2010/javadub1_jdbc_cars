@@ -6,10 +6,12 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 
 public class CarDao {
+
 
     private JdbcConnect JdbcConnect;
 
@@ -21,6 +23,8 @@ public class CarDao {
             System.exit(2);
         }
     }
+
+    private static final String FIND_OLDER_CAR_BY_DATE = "SELECT * FROM `car_database`.`cars` WHERE `data` < ?;";
 
     private final static String CREATE_TABLE_STATEMENT =
             "create table if not exists cars(\n" +
@@ -42,7 +46,7 @@ public class CarDao {
 
     private final static String FIND_CAR_BY_NAZWA = "SELECT * FROM car_database.cars WHERE `nazwa` = ?;";
 
-    private final static String FIND_CAR_BY_PRZEBIEG = "SELECT * FROM car_database.cars WHERE `przebieg` = ?;";
+    private final static String FIND_CAR_BY_PRZEBIEG = "SELECT * FROM car_database.cars WHERE `przebieg` BETWEEN ? AND ?;";
 
     private final static String FIND_CAR_BY_DATE = "";
 
@@ -118,11 +122,39 @@ public class CarDao {
         return list;
     }
 
-    public List<Car> getCarByPrzebieg(Double przebieg) {
+    public List<Car> getCarByPrzebieg(Double min, Double max) {
         List<Car> list = new ArrayList<>();
 
         try (PreparedStatement statement = JdbcConnect.getConnection().prepareStatement(FIND_CAR_BY_PRZEBIEG)) {
-            statement.setDouble(1, przebieg);
+            statement.setDouble(1, min);
+            statement.setDouble(2, max);
+            ResultSet resultSet = statement.executeQuery();
+
+            while (resultSet.next()) {
+                Car pobrany = new Car();
+                pobrany.setId(resultSet.getLong(1));
+                pobrany.setNazwa(resultSet.getString(2));
+                pobrany.setMarka(resultSet.getString(3));
+                pobrany.setPrzebieg(resultSet.getDouble(4));
+                pobrany.setDate(resultSet.getDate(5).toLocalDate());
+                list.add(pobrany);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return list;
+    }
+
+    public List<Car> getOlderCarByDate(LocalDate date) {
+
+      //  System.out.println(date);
+      //  DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+        List<Car> list = new ArrayList<>();
+      //  String date1 = date.format(formatter);
+      //  System.out.println(date1);
+
+        try (PreparedStatement statement = JdbcConnect.getConnection().prepareStatement(FIND_OLDER_CAR_BY_DATE)) {
+            statement.setDate(1, Date.valueOf(date));
             ResultSet resultSet = statement.executeQuery();
 
             while (resultSet.next()) {
